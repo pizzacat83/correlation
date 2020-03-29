@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Correlation Game</title>
+    <style>
+      #canvas {
+        background: #fff;
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  </head>
+  <body>
+    <div id="canvas"></div>
+    <p>Move the blocks and set the correlation to 0!</p>
+    <p>Correlation: <span id="cor"></span></p>
+    <script>
+      var canvas = $("#canvas");
+      map=[...Array(9)].map(()=>{return Array(9).fill(0)});
+      var drawLine = function(x1,y1,x2,y2) {
+        context.beginPath();
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.closePath();
+        context.stroke();
+    };
+    function initMap(){buttons=[...Array(9)].map(()=>{return Array(9).fill(undefined)});for(var y=0; y<9;++y){for(var x=0;x<9;++x){buttons[y][x]=$("<div></div>").addClass("off").attr({x:x,y:y});canvas.append(buttons[y][x]);}canvas.append($("<br>"));}}
+    function drawMap(){for(var y=0; y<9;++y){for(var x=0;x<9;++x){if(map[y][x])buttons[y][x].removeClass("off").removeClass("select").addClass("on");else buttons[y][x].removeClass("on").removeClass("select").addClass("off");}}if(select)buttons[select[1]][select[0]].addClass("select");}
+    function Click(e) {x=parseInt($(this).attr("x"));y=parseInt($(this).attr("y"));if(select){if(select==[x,y])select=null;else{move(select[0],select[1],x,y);select=null;}}else select=[x,y]; drawMap();}
+    function calcCor(){n=map.map((x)=>{return x.filter((y)=>{return y==1})}).reduce((x,y)=>{return x.concat(y)}).length
+    
+        xave=0
+        for(var y=0; y<9;++y){for(var x=0;x<9;++x)xave+=map[y][x]*(x-4)}
+        xave/=n
+        yave=0
+        for(var y=0; y<9;++y){for(var x=0;x<9;++x)yave+=map[y][x]*(y-4)}
+        yave/=n
+        xvar=0
+        for(var y=0; y<9;++y){for(var x=0;x<9;++x)xvar+=map[y][x]*(x-4-xave)*(x-4-xave)}
+        xvar/=n
+        yvar=0
+        for(var y=0; y<9;++y){for(var x=0;x<9;++x)yvar+=map[y][x]*(y-4-yave)*(y-4-yave)}
+        yvar/=n
+        cor=0
+        for(var y=0; y<9;++y){for(var x=0;x<9;++x)cor+=map[y][x]*(y-4-yave)*(x-4-xave)}
+        cor/=n;
+        return cor/Math.sqrt(xvar)/Math.sqrt(yvar);
+    }
+    function drawPoint(x,y){context.fillStyle="#0f0"
+context.beginPath();
+  context.arc(120+50*x, 40+50*y, 10, 0, Math.PI*2, false);
+  context.fill();}
+  function drawPoints(){for(var y=0; y<9;++y){for(var x=0;x<9;++x){if(map[y][x])drawPoint(x,y)}}}
+  function printCor(){document.getElementById("cor").innerText=calcCor()}
+  function move(x,y,nx,ny){if(map[y][x]==1&&map[ny][nx]==0){map[y][x]=0;map[ny][nx]=1;drawMap();printCor();}else{alert("invalid")}}
+  function rand(num){var l=[];for(var i=0;i<81;++i)l.push(i);l=l.sort(function() { return Math.random() - .5; });res= l.slice(0,num);return res.map((x)=>{return [Math.floor(x/9),x%9]})}
+  function initGame(num){select=null;initMap();for(r of rand(num)){map[r[1]][r[0]]=1;}drawMap();printCor();$(function() {$('.off').click(Click);$('.on').click(Click)});}
+  initGame(5);
+    </script>
+  </body>
+</html>
